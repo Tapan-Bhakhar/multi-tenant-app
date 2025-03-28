@@ -1,7 +1,8 @@
 import { Injectable, NestMiddleware, Inject, BadRequestException } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { Connection } from 'mongoose';
-import { UserSchema } from '../auth/user.schema';
+import { TenantSchema } from './tenant.schema';
+import { UserSchema } from 'src/auth/user.schema'; // Import UserSchema
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
@@ -13,12 +14,17 @@ export class TenantMiddleware implements NestMiddleware {
       throw new BadRequestException('Tenant ID is required in headers');
     }
 
-    // Attach tenant-specific schema
+    // Attach tenant-specific schema if not already created
+    if (!this.dbConnection.models[`${tenantId}_Tenant`]) {
+      this.dbConnection.model(`${tenantId}_Tenant`, TenantSchema, `${tenantId}_Tenants`);
+    }
+
     if (!this.dbConnection.models[`${tenantId}_User`]) {
       this.dbConnection.model(`${tenantId}_User`, UserSchema, `${tenantId}_users`);
     }
 
     req['tenantId'] = tenantId;
+    req['tenantModel'] = this.dbConnection.models[`${tenantId}_Tenant`];
     req['userModel'] = this.dbConnection.models[`${tenantId}_User`];
 
     next();

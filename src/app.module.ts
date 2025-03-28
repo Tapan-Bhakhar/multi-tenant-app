@@ -5,6 +5,8 @@ import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [DatabaseModule, AuthModule],
+  providers: [],
+  controllers: [],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
